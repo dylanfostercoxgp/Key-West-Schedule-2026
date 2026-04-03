@@ -396,7 +396,7 @@
    See SETUP.md in this repo for full instructions.
 ================================================================ */
 
-const SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRJimDTpMjZvn2lD4DtTwtFh722j4lywlmGa_vWsTdLhDPuRQQx03R5h2k9_QVl8tFEbF4kiXs1fchT7/pub?gid=1457422882&single=true&output=csv';
+const SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRJimDTpMjZvn2lD4DtTwtFh722j4lywlmGa_vWsTdLhDPuRQQx03R5h2k9_QVl8tFEbF4kiXs1fchT/pub?gid=1457422882&single=true&output=csv';
 
 /*
   HOW TO GET YOUR CSV URL:
@@ -661,7 +661,7 @@ async function loadSchedule(forceRefresh = false) {
     errorEl.style.display = 'block';
     errorEl.querySelector('.error-title').textContent = '⚠️ Could Not Load Schedule';
     errorEl.querySelector('.error-sub').innerHTML =
-      `Check that your Google Sheets CSV URL is correct and published publicly.<br>
+      `The schedule data could not be loaded. Make sure you are viewing this page from GitHub Pages (https://), not opened locally from your computer.<br>
        <small style="color:#9ca3af">Error: ${err.message}</small>`;
   } finally {
     refreshBtn.classList.remove('spinning');
