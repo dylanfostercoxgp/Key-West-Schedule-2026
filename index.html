@@ -347,7 +347,7 @@
       <a href="https://raceworldoffshore.com" target="_blank">raceworldoffshore.com</a>
     </div>
     <div class="footer-btns">
-      <button class="btn-print" onclick="window.print()">🖨️ &nbsp;Print Schedule</button>
+      <button class="btn-print" onclick="printSchedule()">🖨️ &nbsp;Print Schedule</button>
     </div>
   </footer>
 
@@ -618,6 +618,86 @@ async function loadSchedule(forceRefresh = false) {
 }
 
 loadSchedule();
+
+/* =============================================================
+   PRINT — fresh window, 2-column layout, prominent day headers
+============================================================= */
+function printSchedule() {
+  var cards = Array.from(document.querySelectorAll('#schedule-container .day-card'));
+  if (!cards.length) {
+    alert('Schedule is still loading — please wait a moment and try again.');
+    return;
+  }
+
+  // Clone, expand, strip unwanted elements
+  var cleaned = [];
+  cards.forEach(function(card) {
+    var c = card.cloneNode(true);
+    c.classList.remove('collapsed');
+    c.querySelectorAll('.event-location,.event-sponsor,.toggle-pill,.toggle-chevron,.race-section-header').forEach(function(el){ el.remove(); });
+    cleaned.push(c);
+  });
+
+  // First half → col1, second half → col2
+  var mid = Math.ceil(cleaned.length / 2);
+  var col1 = '', col2 = '';
+  cleaned.forEach(function(c, i) {
+    if (i < mid) col1 += c.outerHTML;
+    else col2 += c.outerHTML;
+  });
+
+  var html = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
+  '<title>2026 Key West World Championships – Schedule</title>' +
+  '<style>' +
+  '@page{size:letter portrait;margin:.2in .25in}' +
+  '*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}' +
+  'body{font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;background:#fff}' +
+  '.ph{display:flex;align-items:center;gap:8pt;padding:5pt 8pt;background:#0B1E3D;margin-bottom:4pt;border-bottom:1.5pt solid #E11D48}' +
+  '.ph img{height:22pt;width:auto;object-fit:contain}' +
+  '.ph-text{margin-left:4pt}' +
+  '.pe{font-size:6pt;color:#E11D48;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2pt}' +
+  '.pt{font-size:11pt;font-weight:700;color:#fff;line-height:1.1}' +
+  '.ps{font-size:7pt;color:rgba(255,255,255,.55);margin-top:2pt}' +
+  '.pg{display:grid;grid-template-columns:1fr 1fr;gap:8pt;padding:3pt;align-items:start}' +
+  '.pc{display:flex;flex-direction:column;gap:4pt}' +
+  '.day-card{border:.75pt solid #ccc;border-radius:3pt;overflow:hidden}' +
+  '.day-header{display:flex;align-items:center;justify-content:space-between;gap:5pt;padding:5pt 8pt;background:#0B1E3D;border-left:4pt solid #E11D48}' +
+  '.day-header-left{display:flex;align-items:baseline;gap:7pt}' +
+  '.day-name{font-size:12pt;font-weight:900;color:#fff;line-height:1;text-transform:uppercase;letter-spacing:.03em}' +
+  '.day-date{font-size:8pt;color:rgba(255,255,255,.55);font-weight:400}' +
+  '.day-header-right{display:flex;align-items:center;gap:4pt}' +
+  '.championship-badge{display:inline-flex;align-items:center;gap:3pt;font-size:6pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:#E11D48;padding:1pt 4pt;border-radius:999pt;white-space:nowrap}' +
+  '.day-body{border-top:.75pt solid #ddd}' +
+  '.day-card.collapsed .day-body{display:block!important}' +
+  '.event-row{display:grid;grid-template-columns:66pt 1fr;gap:3pt;padding:2.5pt 5pt;border-bottom:.5pt solid #f0f0f0;border-left:2pt solid transparent;align-items:baseline}' +
+  '.event-row:last-child{border-bottom:none}' +
+  '.event-time{font-size:7pt;color:#6E6E73;line-height:1.2}' +
+  '.event-content{min-width:0}' +
+  '.event-name{font-size:7.5pt;color:#1D1D1F;line-height:1.2;font-weight:500}' +
+  '.race-badge{display:inline-block;font-size:5.5pt;font-weight:700;color:#fff;background:#E11D48;padding:.5pt 2.5pt;border-radius:2pt;margin-left:3pt;vertical-align:middle;letter-spacing:.06em;text-transform:uppercase}' +
+  '.event-row.race{border-left-color:#E11D48}' +
+  '.event-row.race .event-time{color:#E11D48;font-weight:700}' +
+  '.event-row.race .event-name{color:#E11D48;font-weight:800}' +
+  '.event-classes{font-size:6.5pt;color:#E11D48;margin-top:.5pt;line-height:1.1}' +
+  'a{color:inherit;text-decoration:none}' +
+  '</style></head><body>' +
+  '<div class="ph">' +
+    '<img src="https://raceworldoffshore.com/wp-content/uploads/2026/03/RWO.png" alt="RWO" onerror="this.style.display=\'none\'">' +
+    '<img src="https://raceworldoffshore.com/wp-content/uploads/2025/02/key-west-logo-white-outline.png" alt="Key West" style="height:18pt" onerror="this.style.display=\'none\'">' +
+    '<div class="ph-text"><div class="pe">2026 Schedule</div>' +
+    '<div class="pt">Key West World Championships</div>' +
+    '<div class="ps">November 1–8, 2026 &middot; Key West, Florida</div></div>' +
+  '</div>' +
+  '<div class="pg"><div class="pc">' + col1 + '</div><div class="pc">' + col2 + '</div></div>' +
+  '</body></html>';
+
+  var w = window.open('', '_blank', 'width=860,height=1120');
+  if (!w) { alert('Popup blocked. Please allow popups for this site and try again.'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){ w.focus(); w.print(); }, 500);
+}
 </script>
 </body>
 </html>
