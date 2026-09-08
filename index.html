@@ -41,7 +41,7 @@
 
     /* HEADER */
     .schedule-header {
-      background: var(--surface);
+      background: #0B1E3D;
       padding: 14px 20px;
       display: flex;
       align-items: center;
@@ -51,14 +51,13 @@
     .schedule-header::after {
       content: '';
       position: absolute;
-      bottom: 0; left: 0; right: 0; height: 2px;
+      bottom: 0; left: 0; right: 0; height: 3px;
       background: linear-gradient(90deg, var(--red) 0%, var(--red) 40%, var(--sky) 40%, var(--sky) 100%);
-      opacity: 0.85;
     }
     .header-logos { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .logo-rwo { height: 44px; width: auto; object-fit: contain; }
-    .logo-divider { width: 1px; height: 34px; background: var(--border); }
-    .logo-kw  { height: 36px; width: auto; object-fit: contain; }
+    .logo-divider { width: 1px; height: 34px; background: rgba(255,255,255,0.2); }
+    .logo-kw  { height: 44px; width: auto; object-fit: contain; }
 
     .header-titles { flex: 1; min-width: 0; }
     .header-eyebrow {
@@ -67,10 +66,10 @@
     }
     .header-title {
       font-size: clamp(14px, 3.2vw, 17px); font-weight: 700;
-      letter-spacing: -0.015em; line-height: 1.2; color: var(--text);
+      letter-spacing: -0.015em; line-height: 1.2; color: #ffffff;
     }
     .header-sub {
-      font-size: 11px; color: var(--text-3); font-weight: 500;
+      font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 500;
       margin-top: 3px; letter-spacing: 0.01em;
     }
 
@@ -377,7 +376,7 @@
            alt="Race World Offshore" class="logo-rwo" onerror="this.style.display='none'">
       <div class="logo-divider"></div>
       <img src="https://raceworldoffshore.com/wp-content/uploads/2025/02/key-west-logo-white-outline.png"
-           alt="Key West World Championships" class="logo-kw" style="filter:invert(1) opacity(0.7)"
+           alt="Key West World Championships" class="logo-kw"
            onerror="this.style.display='none'">
     </div>
     <div class="header-titles">
@@ -793,21 +792,30 @@ function printSchedule() {
   }
 
   // Clone, expand, strip unwanted elements
-  var cleaned = [];
+  var raceDayCards = [], nonRaceDayCards = [];
   cards.forEach(function(card) {
     var c = card.cloneNode(true);
     c.classList.remove('collapsed');
     c.querySelectorAll('.event-sponsor,.race-pill,.toggle-chevron,.race-section-header').forEach(function(el){ el.remove(); });
-    cleaned.push(c);
+    if (c.querySelector('.race-day-tag')) raceDayCards.push(c);
+    else nonRaceDayCards.push(c);
   });
 
-  // First half → col1, second half → col2
-  var mid = Math.ceil(cleaned.length / 2);
-  var col1 = '', col2 = '';
-  cleaned.forEach(function(c, i) {
-    if (i < mid) col1 += c.outerHTML;
-    else col2 += c.outerHTML;
-  });
+  function buildCols(group) {
+    var mid = Math.ceil(group.length / 2);
+    var c1 = '', c2 = '';
+    group.forEach(function(c, i) { if (i < mid) c1 += c.outerHTML; else c2 += c.outerHTML; });
+    return '<div class="pg"><div class="pc">' + c1 + '</div><div class="pc">' + c2 + '</div></div>';
+  }
+
+  var pageHeader =
+    '<div class="ph">' +
+      '<img src="https://raceworldoffshore.com/wp-content/uploads/2026/03/RWO.png" alt="RWO" onerror="this.style.display=\'none\'">' +
+      '<img src="https://raceworldoffshore.com/wp-content/uploads/2025/02/key-west-logo-white-outline.png" alt="Key West" style="height:20pt" onerror="this.style.display=\'none\'">' +
+      '<div class="ph-text"><div class="pe">2026 Schedule</div>' +
+      '<div class="pt">Key West World Championships</div>' +
+      '<div class="ps">November 1&ndash;8, 2026 &middot; Key West, Florida</div></div>' +
+    '</div>';
 
   var html = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
   '<title>2026 Key West World Championships – Schedule</title>' +
@@ -815,45 +823,42 @@ function printSchedule() {
   '@page{size:letter portrait;margin:.2in .25in}' +
   '*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}' +
   'body{font-family:-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif;background:#fff}' +
-  '.ph{display:flex;align-items:center;gap:8pt;padding:5pt 8pt;background:#0B1E3D;margin-bottom:4pt;border-bottom:1.5pt solid #E11D48}' +
+  '.page-wrap{page-break-after:always}' +
+  '.page-wrap:last-child{page-break-after:auto}' +
+  '.ph{display:flex;align-items:center;gap:8pt;padding:5pt 8pt;background:#0B1E3D;margin-bottom:4pt;border-bottom:2pt solid #E11D48}' +
   '.ph img{height:22pt;width:auto;object-fit:contain}' +
   '.ph-text{margin-left:4pt}' +
-  '.pe{font-size:6pt;color:#E11D48;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2pt}' +
+  '.pe{font-size:6pt;color:#E11D48;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:1pt}' +
   '.pt{font-size:11pt;font-weight:700;color:#fff;line-height:1.1}' +
-  '.ps{font-size:7pt;color:rgba(255,255,255,.55);margin-top:2pt}' +
-  '.pg{display:grid;grid-template-columns:1fr 1fr;gap:8pt;padding:3pt;align-items:start}' +
-  '.pc{display:flex;flex-direction:column;gap:4pt}' +
-  '.day-card{border:.75pt solid #ccc;border-radius:3pt;overflow:hidden}' +
-  '.day-header{display:flex;align-items:center;justify-content:space-between;gap:5pt;padding:5pt 8pt;background:#0B1E3D;border-left:4pt solid #E11D48}' +
-  '.day-header-left{display:flex;align-items:baseline;gap:7pt}' +
-  '.day-name{font-size:12pt;font-weight:900;color:#fff;line-height:1;text-transform:uppercase;letter-spacing:.03em}' +
-  '.day-date{font-size:8pt;color:rgba(255,255,255,.55);font-weight:400}' +
-  '.day-header-right{display:flex;align-items:center;gap:4pt}' +
-  '.race-day-tag{display:inline-flex;align-items:center;gap:3pt;font-size:6pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:#E11D48;padding:1pt 4pt;border-radius:999pt;white-space:nowrap}' +
+  '.ps{font-size:7pt;color:rgba(255,255,255,.5);margin-top:1pt}' +
+  '.pg-label{font-size:7pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#E11D48;padding:2pt 3pt 3pt;margin-bottom:2pt}' +
+  '.pg{display:grid;grid-template-columns:1fr 1fr;gap:6pt;padding:0 3pt 3pt;align-items:start}' +
+  '.pc{display:flex;flex-direction:column;gap:3pt}' +
+  '.day-card{border:.75pt solid #ccc;border-radius:2pt;overflow:hidden}' +
+  '.day-header{display:flex;align-items:center;justify-content:space-between;gap:4pt;padding:4pt 6pt;background:#0B1E3D;border-left:3pt solid #E11D48}' +
+  '.day-header-left{display:flex;align-items:baseline;gap:6pt}' +
+  '.day-name{font-size:10pt;font-weight:800;color:#fff;line-height:1;text-transform:uppercase;letter-spacing:.03em}' +
+  '.day-date{font-size:7.5pt;color:rgba(255,255,255,.55);font-weight:400}' +
+  '.day-header-right{display:flex;align-items:center;gap:3pt}' +
+  '.race-day-tag{display:inline-flex;align-items:center;gap:2pt;font-size:6pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:#E11D48;padding:1pt 4pt;border-radius:999pt;white-space:nowrap}' +
   '.race-day-dot{width:3pt;height:3pt;border-radius:50%;background:#fff;display:inline-block;flex-shrink:0}' +
   '.day-body{border-top:.75pt solid #ddd}' +
   '.day-card.collapsed .day-body{display:block!important}' +
-  '.event-row{display:grid;grid-template-columns:66pt 1fr;gap:3pt;padding:2.5pt 5pt;border-bottom:.5pt solid #f0f0f0;border-left:2pt solid transparent;align-items:baseline}' +
+  '.event-row{display:grid;grid-template-columns:60pt 1fr;gap:2pt;padding:2pt 5pt;border-bottom:.5pt solid #f0f0f0;border-left:2pt solid transparent;align-items:baseline}' +
   '.event-row:last-child{border-bottom:none}' +
-  '.event-time{font-size:7pt;color:#6E6E73;line-height:1.2}' +
+  '.event-time{font-size:7pt;color:#555;line-height:1.2;font-weight:500}' +
   '.event-content{min-width:0}' +
-  '.event-name{font-size:7.5pt;color:#1D1D1F;line-height:1.2;font-weight:500}' +
-  '.event-row.race{border-left-color:#E11D48}' +
+  '.event-name{font-size:7.5pt;color:#1D1D1F;line-height:1.25;font-weight:500}' +
+  '.event-row.race{border-left-color:#E11D48;background:#fff8f9}' +
   '.event-row.race .event-time{color:#E11D48;font-weight:700}' +
-  '.event-row.race .event-name{color:#E11D48;font-weight:800}' +
+  '.event-row.race .event-name{color:#CC1425;font-weight:700}' +
   '.event-classes{font-size:6.5pt;color:#E11D48;margin-top:.5pt;line-height:1.1}' +
-  '.event-location{font-size:6.5pt;color:#6E6E73;margin-top:.5pt;display:inline-flex;align-items:center;gap:3pt}' +
-  '.event-location::before{content:"";width:2.5pt;height:2.5pt;border-radius:50%;background:#AEAEB2;display:inline-block}' +
+  '.event-location{font-size:6.5pt;color:#777;margin-top:.5pt;display:inline-flex;align-items:center;gap:3pt}' +
+  '.event-location::before{content:"";width:2pt;height:2pt;border-radius:50%;background:#aaa;display:inline-block}' +
   'a{color:inherit;text-decoration:none}' +
   '</style></head><body>' +
-  '<div class="ph">' +
-    '<img src="https://raceworldoffshore.com/wp-content/uploads/2026/03/RWO.png" alt="RWO" onerror="this.style.display=\'none\'">' +
-    '<img src="https://raceworldoffshore.com/wp-content/uploads/2025/02/key-west-logo-white-outline.png" alt="Key West" style="height:18pt" onerror="this.style.display=\'none\'">' +
-    '<div class="ph-text"><div class="pe">2026 Schedule</div>' +
-    '<div class="pt">Key West World Championships</div>' +
-    '<div class="ps">November 1&ndash;8, 2026 &middot; Key West, Florida</div></div>' +
-  '</div>' +
-  '<div class="pg"><div class="pc">' + col1 + '</div><div class="pc">' + col2 + '</div></div>' +
+  '<div class="page-wrap">' + pageHeader + '<div class="pg-label">Race Days</div>' + buildCols(raceDayCards) + '</div>' +
+  '<div class="page-wrap">' + pageHeader + '<div class="pg-label">Non-Race Days</div>' + buildCols(nonRaceDayCards) + '</div>' +
   '</body></html>';
 
   var w = window.open('', '_blank', 'width=860,height=1120');
