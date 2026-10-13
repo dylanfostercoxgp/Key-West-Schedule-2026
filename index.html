@@ -76,14 +76,14 @@
     .header-right {
       flex-shrink: 0; display: flex; align-items: center; gap: 8px;
     }
-    .refresh-btn {
+    .refresh-btn, .print-btn {
       background: var(--bg); border: 1px solid var(--border); border-radius: 999px;
       padding: 6px 12px; font-family: var(--font); font-size: 11px; font-weight: 500;
       color: var(--text-2); cursor: pointer;
       display: inline-flex; align-items: center; gap: 5px;
       transition: background 0.15s, border-color 0.15s;
     }
-    .refresh-btn:hover { background: var(--surface); border-color: var(--text-4); }
+    .refresh-btn:hover, .print-btn:hover { background: var(--surface); border-color: var(--text-4); }
     @keyframes spin { to { transform: rotate(360deg); } }
     .refresh-btn.spinning #refresh-icon { animation: spin 0.8s linear infinite; }
     .last-updated { font-size: 10px; color: var(--text-4); white-space: nowrap; }
@@ -391,6 +391,12 @@
         </svg>
         Refresh
       </button>
+      <button class="print-btn" onclick="printSchedule()" aria-label="Print schedule">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Print
+      </button>
       <span class="last-updated" id="last-updated"></span>
     </div>
   </header>
@@ -423,9 +429,6 @@
     <div class="footer-text">
       &copy; 2026 Race World Offshore &nbsp;·&nbsp;
       <a href="https://raceworldoffshore.com" target="_blank">raceworldoffshore.com</a>
-    </div>
-    <div class="footer-btns">
-      <button class="btn-print" onclick="printSchedule()">Print Schedule</button>
     </div>
   </footer>
 
@@ -557,12 +560,13 @@ function buildQuickNav(schedule) {
 ============================================================= */
 function sponsorHTML(sponsor) {
   if (!sponsor) return '';
-  const clean = sponsor.replace(/^presented by\s*/i, '').trim();
-  const url = SPONSOR_LINKS[clean] || SPONSOR_LINKS[sponsor];
-  const display = url
-    ? `<a href="${url}" target="_blank" rel="noopener">${sponsor}</a>`
-    : sponsor;
-  return `<div class="event-sponsor">${display}</div>`;
+  const parts = sponsor.split('|').map(s => s.trim()).filter(Boolean);
+  const rendered = parts.map(s => {
+    const clean = s.replace(/^presented by\s*/i, '').trim();
+    const url = SPONSOR_LINKS[clean] || SPONSOR_LINKS[s];
+    return url ? `<a href="${url}" target="_blank" rel="noopener">${s}</a>` : s;
+  }).join(' &middot; ');
+  return `<div class="event-sponsor">${rendered}</div>`;
 }
 
 /* =============================================================
@@ -739,9 +743,12 @@ function openModal(evt) {
 
   let html = '';
   if (evt.sponsor) {
-    const clean = evt.sponsor.replace(/^presented by\s*/i, '').trim();
-    const sUrl = SPONSOR_LINKS[clean] || SPONSOR_LINKS[evt.sponsor];
-    const sDisplay = sUrl ? `<a href="${sUrl}" target="_blank" rel="noopener">${evt.sponsor}</a>` : evt.sponsor;
+    const parts = evt.sponsor.split('|').map(s => s.trim()).filter(Boolean);
+    const sDisplay = parts.map(s => {
+      const clean = s.replace(/^presented by\s*/i, '').trim();
+      const sUrl = SPONSOR_LINKS[clean] || SPONSOR_LINKS[s];
+      return sUrl ? `<a href="${sUrl}" target="_blank" rel="noopener">${s}</a>` : s;
+    }).join(' &middot; ');
     html += `<div class="modal-detail-row">
       <div class="modal-detail-icon">🤝</div>
       <div><div class="modal-detail-label">Sponsor</div><div class="modal-detail-value">${sDisplay}</div></div>
